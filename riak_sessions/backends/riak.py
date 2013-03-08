@@ -44,8 +44,9 @@ class SessionStore(SessionBase):
             return
 
     def save(self, must_create=False):
+        key = self._get_or_create_session_key()
         if must_create:
-            current_value = self.bucket.get(self._get_riak_key())
+            current_value = self.bucket.get(self._get_riak_key(key))
             if current_value.exists():
                 return CreateError
 
@@ -54,7 +55,7 @@ class SessionStore(SessionBase):
         data = {'data': encoded_session_data,
                 'expire': self._get_expiry_timestamp()}
 
-        session = self.bucket.new(self._get_riak_key())
+        session = self.bucket.new(self._get_riak_key(key))
         session.set_data(data)
         if RIAK_SESSION_USE_2I:
             session.set_indexes([
